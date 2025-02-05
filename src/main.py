@@ -1,16 +1,16 @@
-from fastapi import FastAPI, Query
-from sqlalchemy import create_engine
+from fastapi import FastAPI, Query, Depends
+from database import async_session
 from sentence_transformers import SentenceTransformer
-from os import getenv
-# import numpy as np
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import text
 from typing import Optional
 
 app = FastAPI()
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
 class SearchService:
-    def __init__(self):
-        self.engine = create_engine(getenv('DATABASE_URL'))
+    def __init__(self, session: AsyncSession):
+        self.session = session
         
     async def hybrid_search(
         self,
@@ -19,10 +19,10 @@ class SearchService:
         limit: int = 10
     ):
         # Generate vector embedding for the query
-        query_vector = model.encode(query)
+        query_vector = model.encode(query).tolist()  # Convert NumPy array to list
         
-        # Combine keyword and vector search
-        sql_query = """
+        # SQL Query (Using Hybrid Search: Full-Text + Vector Similarity)
+        sql_query = text("""
         WITH keyword_matches AS (
             SELECT 
                 mi.id,
@@ -50,25 +50,28 @@ class SearchService:
         FROM keyword_matches
         ORDER BY final_score DESC
         LIMIT :limit
-        """
+        """)
         
-        results = await self.engine.execute(
-            sql_query,
-            query=query,
-            query_vector=query_vector,
-            category=category,
-            limit=limit
-        )
-        
-        return results.fetchall()
+        async with self.session.begin():  # Use Async Session
+            results = await self.session.execute(
+                sql_query.bindparams(
+                    query=query,
+                    query_vector=query_vector,  # Correct vector format
+                    category=category,
+                    limit=limit
+                )
+            )
+            return results.fetchall()
 
-search_service = SearchService()
+async def get_search_service(session: AsyncSession = Depends(async_session)):
+    return SearchService(session)
 
 @app.get("/api/v1/search")
 async def search(
     query: str = Query(..., min_length=1),
     category: Optional[str] = None,
-    limit: int = Query(default=10, le=100)
+    limit: int = Query(default=10, le=100),
+    search_service: SearchService = Depends(get_search_service)
 ):
     results = await search_service.hybrid_search(query, category, limit)
-    return {"results": results}
+    return {"results": [dict(row) for row in results]}
