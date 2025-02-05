@@ -1,15 +1,16 @@
 from fastapi import FastAPI, Query
 from sqlalchemy import create_engine
 from sentence_transformers import SentenceTransformer
-import numpy as np
-from typing import List, Optional
+from os import getenv
+# import numpy as np
+from typing import Optional
 
 app = FastAPI()
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
 class SearchService:
     def __init__(self):
-        self.engine = create_engine('postgresql://user:password@localhost/magazine_db')
+        self.engine = create_engine(getenv('DATABASE_URL'))
         
     async def hybrid_search(
         self,
