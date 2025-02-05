@@ -3,6 +3,7 @@ from faker import Faker
 from sentence_transformers import SentenceTransformer
 from sqlalchemy import create_engine
 import numpy as np
+import os
 
 fake = Faker()
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -41,7 +42,7 @@ def generate_magazine_data(n_records: int):
     return pd.DataFrame(magazines), pd.DataFrame(contents)
 
 if __name__ == '__main__':
-    engine = create_engine('postgresql://user:password@localhost/magazine_db')
+    engine = create_engine(os.getenv('DATABASE_URL'))
     # Generate 1M records.
     magazines_df, contents_df = generate_magazine_data(100)
     magazines_df.to_sql('magazine_info', engine, if_exists='append', index=False)
