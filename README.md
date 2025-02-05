@@ -58,13 +58,17 @@ uv run uvicorn main:app --host 0.0.0.0 --port 8000
 
 ## Using Docker
 simply run the command `docker compose up -d --build`. The API should be accessible on port 8000.
+```shell
+docker exec -it fb3d613a7d9c  psql -U postgres
+```
 
 ## Usage
-
+Access the Interactive shell to create a database.
 ```curl
 curl http://localhost:8000/api/v1/search?query=AI&limit=1
-
 ```
+
+
 
 # Performance Optimizations
 
@@ -78,6 +82,3 @@ curl http://localhost:8000/api/v1/search?query=AI&limit=1
     - Parallel query execution
     - Materialized views for complex aggregations
     - Query result pagination
-
-
-
