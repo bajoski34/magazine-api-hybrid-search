@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, Depends
+from fastapi import FastAPI, Query, Depends, HttpException, status
 from database import async_session
 from sentence_transformers import SentenceTransformer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -73,5 +73,31 @@ async def search(
     limit: int = Query(default=10, le=100),
     search_service: SearchService = Depends(get_search_service)
 ):
-    results = await search_service.hybrid_search(query, category, limit)
-    return {"results": [dict(row) for row in results]}
+    try:
+        # Attempt to perform the hybrid search
+        results = await search_service.hybrid_search(query, category, limit)
+        return {"results": [dict(row) for row in results]}
+    
+    except ValueError as ve:
+        # Catch value errors (e.g., invalid input for search)
+        logger.error(f"ValueError: {str(ve)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid input: {str(ve)}"
+        )
+    
+    except ConnectionError as ce:
+        # Catch database connection errors
+        logger.error(f"ConnectionError: {str(ce)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to connect to the database. Please try again later."
+        )
+    
+    except Exception as e:
+        # Catch any other unexpected errors
+        logger.error(f"Unexpected error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred. Please try again later."
+        )
