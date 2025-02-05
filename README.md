@@ -44,16 +44,16 @@ uv venv & uv sync
 
 3. Environment Setup
 ```.env
-export DATABASE_URL="postgresql://user:password@localhost/magazine_db"
+export DATABASE_URL="postgresql+asyncpg://user:password@localhost/magazine_db"
 export MODEL_NAME="all-MiniLM-L6-v2"
 ```
 4. To Seed the Database with the corresponding information and embeddings run
 ```shell
-uv run src/database.py
+uv run src/generate_dataset.py
 ```
 5. To serve the application, run. 
 ```shell
-uv run fastapi dev src/main.py
+uv run uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 ## Using Docker
