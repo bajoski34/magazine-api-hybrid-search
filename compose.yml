@@ -15,7 +15,7 @@ services:
       - "8000:8000"
 
   db:
-    image: postgres:15
+    image: ankane/pgvector:latest  # PostgreSQL with pgvector
     container_name: magazine_db
     restart: always
     environment:
