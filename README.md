@@ -40,9 +40,44 @@ CREATE INDEX idx_content_magazine_id ON magazine_content(magazine_id);
 ```shell
 uv venv & uv sync
 ```
-2. Environment Setup
+2. Create a PostgreSQL Database named magazine_db
+
+3. Environment Setup
 ```.env
 export DATABASE_URL="postgresql://user:password@localhost/magazine_db"
 export MODEL_NAME="all-MiniLM-L6-v2"
 ```
-3. 
+4. To Seed the Database with the corresponding information and embeddings run
+```shell
+uv run src/database.py
+```
+5. To serve the application, run. 
+```shell
+uv run fastapi dev src/main.py
+```
+
+## Using Docker
+simply run the command `docker compose up -d --build`. The API should be accessible on port 8000.
+
+## Usage
+
+```curl
+curl http://localhost:8000/api/v1/search?query=AI&limit=1
+
+```
+
+# Performance Optimizations
+
+- Database Indexing
+    - B-tree indexes on frequently queried columns
+    - Full-text search index using tsvector
+- Caching Strategy
+    - Redis cache for frequent queries
+    - Cache vector embeddings for common searches
+- Query Optimization
+    - Parallel query execution
+    - Materialized views for complex aggregations
+    - Query result pagination
+
+
+
