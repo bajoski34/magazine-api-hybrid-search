@@ -15,7 +15,7 @@ async def get_embedding(text):
 
 async def store_document(title, content):
     embedding = await get_embedding([content])
-    conn = await asyncpg.connect("postgresql+asyncpg://user:password@localhost/magazine_db")
+    conn = await asyncpg.connect("postgresql+asyncpg://postgres:password@magazine_db:5432/magazine_db")
     await conn.execute(
         "INSERT INTO documents (title, content, embedding) VALUES ($1, $2, $3)",
         title, content, embedding
@@ -25,7 +25,7 @@ async def store_document(title, content):
 async def hybrid_search(query_text):
     embedding = await get_embedding(query_text)
     logging.info(f" { embedding}")
-    conn = await asyncpg.connect("postgresql+asyncpg://user:password@localhost/magazine_db")
+    conn = await asyncpg.connect("postgresql+asyncpg://postgres:password@magazine_db:5432/magazine_db")
     results = await conn.fetch(
         """SELECT id, title, content
            FROM documents
