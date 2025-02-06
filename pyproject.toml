@@ -5,7 +5,13 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "asyncpg>=0.30.0",
+    "faker>=35.2.0",
     "fastapi[standard]>=0.115.8",
+    "numpy>=2.2.2",
+    "pandas>=2.2.3",
+    "psycopg2>=2.9.10",
+    "sentence-transformers>=3.4.1",
     "sqlalchemy>=2.0.37",
 ]
 
